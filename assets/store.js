@@ -14,7 +14,19 @@
         document.head.appendChild(s);
       });
     }
-    sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
+    /* Keep the admin signed in on this device: save the session in localStorage under a fixed key
+       and refresh it automatically, so she only signs in once per phone/browser. */
+    let store;
+    try { window.localStorage.setItem("q16-ls-test", "1"); window.localStorage.removeItem("q16-ls-test"); store = window.localStorage; } catch (e) { store = undefined; }
+    sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: false,
+        storage: store,
+        storageKey: "sb-dubcicwpeprauojkwqin-auth-token"
+      }
+    });
     return sb;
   }
   const chk = (r) => { if (r.error) throw new Error(r.error.message); return r.data; };
@@ -54,10 +66,13 @@
       return chk(await s.rpc("queen16_submit_txn", { p_id: id, p_token: token, p_txn: txn }));
     },
     async session() { const s = await client(); const { data } = await s.auth.getSession(); return data.session; },
+    async onAuth(cb) { const s = await client(); return s.auth.onAuthStateChange((event, session) => cb(event, session)); },
     async signIn(email, password) {
       const s = await client();
       const r = await s.auth.signInWithPassword({ email, password });
       if (r.error) throw new Error(r.error.message);
+      /* Ask the browser not to clear this site's saved data. */
+      try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
       return r.data.session;
     },
     async signOut() { const s = await client(); await s.auth.signOut(); },

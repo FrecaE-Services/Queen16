@@ -19,13 +19,23 @@
     }
     await loadAll();
     render();
+    watchAuth();
+  }
+  /* If the session ends on another tab or the refresh fails, show the login instead of a broken page. */
+  let watching = false;
+  function watchAuth() {
+    if (watching || !S.onAuth) return; watching = true;
+    S.onAuth((event, session) => { if (event === "SIGNED_OUT" || (!session && event !== "INITIAL_SESSION")) loginView(); }).catch(() => {});
   }
   function loginView(msg) {
     app.innerHTML = '<div class="login"><div class="brand" style="font-size:2rem">Queen 16<small>Admin</small></div>' +
-      '<div class="card" style="margin-top:18px"><form id="lf"><label for="le">Email</label><input id="le" type="email" autocomplete="username" required>' +
+      '<div class="card" style="margin-top:18px"><form id="lf"><label for="le">Email</label><input id="le" type="email" autocomplete="username" value="' + esc(C.ADMIN_EMAIL || "") + '" required>' +
       '<label for="lp">Password</label><input id="lp" type="password" autocomplete="current-password" required>' +
       '<button class="btn" style="width:100%;margin-top:16px" id="lb">Sign in</button><div class="err" id="lerr">' + esc(msg || "") + "</div></form></div>" +
 
+      '<div class="card muted" style="margin-top:10px;line-height:1.5"><b style="color:var(--gold2)">Stay signed in on your phone</b><br>' +
+      'Sign in once and this phone remembers you. Open this page in Safari or Chrome, not inside WhatsApp or Instagram, because those clear the login when you close them. ' +
+      'Then tap Share → <b>Add to Home Screen</b> and always open the admin from that Queen16 icon.</div>' +
       '<p class="muted" style="text-align:center;margin-top:10px"><a href="../">← Back to the shop</a></p></div>';
     $("lf").onsubmit = async (e) => {
       e.preventDefault(); $("lb").disabled = true; $("lerr").textContent = "";

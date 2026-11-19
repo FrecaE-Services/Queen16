@@ -1,0 +1,12 @@
+{
+  "name": "Queen16 Admin",
+  "short_name": "Queen16 Admin",
+  "start_url": "/admin/",
+  "scope": "/admin/",
+  "display": "standalone",
+  "background_color": "#10182e",
+  "theme_color": "#10182e",
+  "icons": [
+    { "src": "/assets/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
